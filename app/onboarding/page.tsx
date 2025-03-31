@@ -103,12 +103,17 @@ export default function OnboardingPage() {
     try {
       setIsSubmitting(true)
 
-      console.log("Clerk user:", user)
+      const clerkId = user.id
+      console.log("Clerk user ID:", clerkId) // Debug log
+
+      if (!clerkId) {
+        throw new Error("No Clerk user ID found")
+      }
 
       const userId = await createUser({
         name: user.fullName || "",
         email: user.primaryEmailAddress?.emailAddress || "",
-        clerkId: user.id,
+        clerkId: clerkId,
         university: formData.university,
         major: formData.major,
         imageUrl: user.imageUrl,

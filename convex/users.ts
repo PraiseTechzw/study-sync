@@ -45,6 +45,8 @@ export const create = mutation({
     courses: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
+    console.log("Creating user with args:", args) // Debug log
+
     // Check if user already exists
     const existingUser = await ctx.db
       .query("users")
@@ -52,19 +54,23 @@ export const create = mutation({
       .first()
 
     if (existingUser) {
+      console.log("User already exists:", existingUser) // Debug log
       return existingUser._id
     }
 
     // Create new user
-    return await ctx.db.insert("users", {
+    const userId = await ctx.db.insert("users", {
       name: args.name,
       email: args.email,
       clerkId: args.clerkId,
       university: args.university,
       major: args.major,
       imageUrl: args.imageUrl,
-      courses: args.courses,
+      courses: args.courses || [],
     })
+
+    console.log("Created new user with ID:", userId) // Debug log
+    return userId
   },
 })
 
