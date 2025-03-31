@@ -103,19 +103,26 @@ export default function OnboardingPage() {
     try {
       setIsSubmitting(true)
 
-      await createUser({
+      console.log("Clerk user:", user)
+
+      const userId = await createUser({
         name: user.fullName || "",
         email: user.primaryEmailAddress?.emailAddress || "",
+        clerkId: user.id,
         university: formData.university,
         major: formData.major,
         imageUrl: user.imageUrl,
         courses: formData.courses,
       })
 
+      console.log("Created user with ID:", userId)
+
       toast({
         title: "Profile created!",
         description: "Your StudySync profile has been set up successfully.",
       })
+
+      localStorage.setItem("convexUserId", userId)
 
       router.push("/dashboard")
     } catch (error) {
@@ -141,7 +148,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-muted/50">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center px-4 md:px-6">
+        <div className="container flex h-16 items-center justify-center px-4 md:px-6">
           <div className="flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold">StudySync</span>
@@ -149,7 +156,7 @@ export default function OnboardingPage() {
         </div>
       </header>
       <main className="flex-1 container max-w-3xl py-12 px-4 md:px-6">
-        <div className="space-y-8">
+        <div className="mx-auto max-w-2xl space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-3xl font-bold tracking-tight">Welcome to StudySync</h1>
             <p className="text-muted-foreground">
@@ -158,7 +165,7 @@ export default function OnboardingPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center gap-4">
               {steps.map((step, index) => (
                 <div key={step.title} className="flex items-center">
                   <div
@@ -183,7 +190,7 @@ export default function OnboardingPage() {
 
           <Card className="border-none shadow-lg">
             <form onSubmit={handleSubmit}>
-              <CardHeader>
+              <CardHeader className="text-center">
                 <CardTitle>{steps[currentStep].title}</CardTitle>
                 <CardDescription>{steps[currentStep].description}</CardDescription>
               </CardHeader>
@@ -265,7 +272,7 @@ export default function OnboardingPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No courses added yet.</p>
+                      <p className="text-sm text-muted-foreground text-center">No courses added yet.</p>
                     )}
                   </div>
                 )}

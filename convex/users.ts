@@ -38,36 +38,32 @@ export const create = mutation({
   args: {
     name: v.string(),
     email: v.string(),
+    clerkId: v.string(),
     university: v.string(),
     major: v.string(),
     imageUrl: v.optional(v.string()),
     courses: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) {
-      throw new Error("Unauthorized")
-    }
-
-    const clerkId = identity.subject
-
+    // Check if user already exists
     const existingUser = await ctx.db
       .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .first()
 
     if (existingUser) {
       return existingUser._id
     }
 
+    // Create new user
     return await ctx.db.insert("users", {
       name: args.name,
       email: args.email,
-      clerkId,
+      clerkId: args.clerkId,
       university: args.university,
       major: args.major,
       imageUrl: args.imageUrl,
-      courses: args.courses || [],
+      courses: args.courses,
     })
   },
 })
@@ -99,6 +95,13 @@ export const update = mutation({
     }
 
     return await ctx.db.patch(id, updates)
+  },
+})
+
+export const getById = query({
+  args: { id: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id)
   },
 })
 
