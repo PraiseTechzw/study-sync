@@ -27,6 +27,14 @@ export const getByEmail = query({
 export const getByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) throw new Error("Unauthorized")
+
+    // Only allow users to get their own profile
+    if (identity.subject !== args.clerkId) {
+      throw new Error("Unauthorized")
+    }
+
     return await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
