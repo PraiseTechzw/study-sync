@@ -5,12 +5,33 @@ import "@/app/globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ConvexProvider, ConvexReactClient } from "convex/react"
-import { ClerkProvider } from "@clerk/nextjs"
+import { ClerkProvider, useAuth } from "@clerk/nextjs"
 import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
-const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
+function ConvexClientProvider({ children }: { children: React.ReactNode }) {
+  const { isLoaded, isSignedIn, getToken } = useAuth()
+  const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
+
+  if (!isLoaded) {
+    return null
+  }
+
+  // Set up auth token
+  if (isSignedIn) {
+    convex.setAuth(async () => {
+      const token = await getToken()
+      return token
+    })
+  }
+
+  return (
+    <ConvexProvider client={convex}>
+      {children}
+    </ConvexProvider>
+  )
+}
 
 export default function RootLayout({
   children,
@@ -21,7 +42,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
-          <ConvexProvider client={convex}>
+          <ConvexClientProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               {children}
               <Toaster 
@@ -36,7 +57,7 @@ export default function RootLayout({
                 }}
               />
             </ThemeProvider>
-          </ConvexProvider>
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>

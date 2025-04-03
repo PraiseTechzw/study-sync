@@ -42,6 +42,11 @@ export default function CreateGroupPage() {
     )
   }
 
+  if (!user || !user.id) {
+    router.push("/sign-in")
+    return null
+  }
+
   if (!profile) {
     return (
       <DashboardShell>
@@ -58,30 +63,47 @@ export default function CreateGroupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
+    
+    try {
+      setIsSubmitting(true)
 
-    if (!profile?._id) {
-      toast.error("Please complete your profile setup first")
-      router.push("/onboarding")
-      return
+      if (!user?.id) {
+        toast.error("Please sign in to create a group")
+        router.push("/sign-in")
+        return
+      }
+
+      if (!profile?._id) {
+        toast.error("Please complete your profile setup first")
+        router.push("/onboarding")
+        return
+      }
+
+      const promise = createGroup({
+        name: formData.name,
+        course: formData.course,
+        description: formData.description,
+        createdBy: profile._id,
+        isPublic: true
+      })
+
+      toast.promise(promise, {
+        loading: "Creating your study group...",
+        success: () => {
+          router.push("/dashboard/groups")
+          return "Study group created successfully!"
+        },
+        error: (err) => {
+          console.error("Failed to create group:", err)
+          return "Failed to create study group. Please try again."
+        },
+      })
+    } catch (error) {
+      console.error("Error in handleSubmit:", error)
+      toast.error("An unexpected error occurred. Please try again.")
+    } finally {
+      setIsSubmitting(false)
     }
-
-    const promise = createGroup({
-      name: formData.name,
-      course: formData.course,
-      description: formData.description,
-      createdBy: profile._id,
-      isPublic: true
-    })
-
-    toast.promise(promise, {
-      loading: "Creating your study group...",
-      success: () => {
-        router.push("/dashboard/groups")
-        return "Study group created successfully!"
-      },
-      error: "Failed to create study group. Please try again.",
-    })
   }
 
   return (

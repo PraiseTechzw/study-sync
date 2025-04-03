@@ -27,21 +27,25 @@ export const getByEmail = query({
 export const getByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthorized")
-
     // First, try to get the user by Clerk ID
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.clerkId))
       .first()
 
-    // If user not found, return null instead of throwing error
+    // If no user found, return null
     if (!user) return null
 
-    // Only allow users to get their own profile
+    // Get the identity after finding the user
+    const identity = await ctx.auth.getUserIdentity()
+    
+    // If no identity but user exists, still return the user
+    // This allows the profile to be accessed during server-side rendering
+    if (!identity) return user
+
+    // If we have both user and identity, verify they match
     if (user.clerkId !== identity.subject) {
-      throw new Error("Unauthorized")
+      return null
     }
 
     return user

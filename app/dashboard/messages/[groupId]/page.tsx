@@ -8,14 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MessageSquare, Loader2, Send } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { Id } from "@/convex/_generated/dataModel"
+import Link from "next/link"
+import { toast } from "sonner"
 
 export default function GroupChatPage() {
   const { groupId } = useParams()
   const { user, isLoaded } = useUser()
-  const profile = useQuery(api.users.getByClerkId, { clerkId: user?.id || "" })
+  const profile = useQuery(api.users.getByClerkId, { 
+    clerkId: user?.id || undefined 
+  })
   const group = useQuery(api.groups.get, { id: groupId as Id<"groups"> })
   const messages = useQuery(api.messages.getByGroup, { groupId: groupId as Id<"groups"> })
   const sendMessage = useMutation(api.messages.send)
@@ -23,7 +27,17 @@ export default function GroupChatPage() {
   const [newMessage, setNewMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
 
-  if (!isLoaded || !group || !profile) {
+  useEffect(() => {
+    if (!isLoaded) return
+
+    if (!user) {
+      toast.error("Please sign in to send messages")
+    } else if (!profile) {
+      toast.error("Please complete your profile setup first")
+    }
+  }, [isLoaded, user, profile])
+
+  if (!isLoaded) {
     return (
       <DashboardShell>
         <div className="flex items-center justify-center min-h-screen">
@@ -33,9 +47,56 @@ export default function GroupChatPage() {
     )
   }
 
+  if (!user) {
+    return (
+      <DashboardShell>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-2xl font-bold">Please sign in</h1>
+          <p className="text-muted-foreground">You need to be signed in to view messages.</p>
+          <Link href="/sign-in" className="text-primary hover:underline mt-4">
+            Sign In
+          </Link>
+        </div>
+      </DashboardShell>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <DashboardShell>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-2xl font-bold">Profile not found</h1>
+          <p className="text-muted-foreground">Please complete your onboarding.</p>
+          <Link href="/onboarding" className="text-primary hover:underline mt-4">
+            Complete Onboarding
+          </Link>
+        </div>
+      </DashboardShell>
+    )
+  }
+
+  if (!group) {
+    return (
+      <DashboardShell>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-2xl font-bold">Group not found</h1>
+          <p className="text-muted-foreground">The group you're looking for doesn't exist.</p>
+          <Link href="/dashboard/groups" className="text-primary hover:underline mt-4">
+            Back to Groups
+          </Link>
+        </div>
+      </DashboardShell>
+    )
+  }
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim()) return
+
+    if (!user || !profile) {
+      toast.error("Please sign in and complete your profile to send messages")
+      return
+    }
 
     setIsSending(true)
     try {
@@ -44,8 +105,10 @@ export default function GroupChatPage() {
         content: newMessage.trim(),
       })
       setNewMessage("")
+      toast.success("Message sent successfully!")
     } catch (error) {
       console.error("Failed to send message:", error)
+      toast.error("Failed to send message. Please try again.")
     } finally {
       setIsSending(false)
     }
@@ -98,23 +161,23 @@ export default function GroupChatPage() {
               ))
             )}
           </CardContent>
-          <div className="p-4 border-t">
-            <form onSubmit={handleSendMessage} className="flex gap-2">
+          <form onSubmit={handleSendMessage} className="p-4 border-t">
+            <div className="flex gap-2">
               <Input
-                placeholder="Type your message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                disabled={isSending}
+                placeholder="Type a message..."
+                disabled={isSending || !user || !profile}
               />
-              <Button type="submit" disabled={isSending || !newMessage.trim()}>
+              <Button type="submit" disabled={isSending || !newMessage.trim() || !user || !profile}>
                 {isSending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
               </Button>
-            </form>
-          </div>
+            </div>
+          </form>
         </Card>
       </div>
     </DashboardShell>

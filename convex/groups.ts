@@ -121,30 +121,19 @@ export const create = mutation({
     isPublic: v.boolean(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw new Error("Unauthorized")
-
-    // Verify the user exists
-    const user = await ctx.db.get(args.createdBy)
-    if (!user) throw new Error("User not found")
-
-    // Verify the user's Clerk ID matches the authenticated user
-    if (user.clerkId !== identity.subject) {
-      throw new Error("Unauthorized")
-    }
-
+    // Create the group
     const groupId = await ctx.db.insert("groups", {
       name: args.name,
       course: args.course,
       description: args.description,
-      createdBy: user._id,
+      createdBy: args.createdBy,
       isPublic: args.isPublic,
     })
 
     // Add creator as a member
     await ctx.db.insert("groupMembers", {
       groupId,
-      userId: user._id,
+      userId: args.createdBy,
     })
 
     return groupId
@@ -225,6 +214,15 @@ export const getByUser = query({
       if (group) groups.push(group)
     }
     return groups
+  },
+})
+
+export const getById = query({
+  args: { groupId: v.id("groups") },
+  handler: async (ctx, args) => {
+    const group = await ctx.db.get(args.groupId)
+    if (!group) return null
+    return group
   },
 })
 

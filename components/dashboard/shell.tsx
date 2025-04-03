@@ -1,14 +1,16 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { BookOpen, Calendar, Users, MessageSquare, Settings, LogOut, ChevronLeft, ChevronRight, Bell, Search, Plus } from "lucide-react"
 import { SignOutButton, useUser } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 const navigation = [
   {
@@ -52,10 +54,34 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children }: DashboardShellProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const { user } = useUser()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const profile = useQuery(api.users.getByClerkId, { clerkId: user?.id || "" })
 
-  const convexUserId = localStorage.getItem("convexUserId")
+  if (!profile) {
+    return (
+      <div className="flex min-h-screen bg-gray-50">
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <div className="max-w-md w-full space-y-8 text-center">
+            <div className="space-y-4">
+              <BookOpen className="h-12 w-12 text-primary mx-auto" />
+              <h1 className="text-3xl font-bold">Welcome to StudySync</h1>
+              <p className="text-gray-600">
+                To get started with finding study groups and connecting with classmates, please complete your profile setup.
+              </p>
+              <Button 
+                onClick={() => router.push("/onboarding")}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                Complete Profile Setup
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
