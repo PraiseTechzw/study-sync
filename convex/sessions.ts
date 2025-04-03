@@ -1,4 +1,4 @@
-import { query } from "./_generated/server"
+import { mutation, query } from "./_generated/server"
 import { v } from "convex/values"
 
 export const getForGroup = query({
@@ -108,6 +108,53 @@ export const getUpcomingByUser = query({
       .filter((q) => q.gte(q.field("date"), today))
       .order("asc")
       .take(5)
+  },
+})
+
+export const create = mutation({
+  args: {
+    groupId: v.id("groups"),
+    title: v.string(),
+    description: v.optional(v.string()),
+    date: v.string(),
+    startTime: v.string(),
+    endTime: v.string(),
+    createdBy: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) {
+      throw new Error("Unauthorized")
+    }
+
+    // Verify the user is a member of the group
+    const groupMember = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_user", (q) => q.eq("userId", args.createdBy))
+      .filter((q) => q.eq(q.field("groupId"), args.groupId))
+      .first()
+
+    if (!groupMember) {
+      throw new Error("You must be a member of the group to create sessions")
+    }
+
+    const sessionId = await ctx.db.insert("sessions", {
+      title: args.title,
+      description: args.description,
+      date: args.date,
+      startTime: args.startTime,
+      endTime: args.endTime,
+      groupId: args.groupId,
+      createdBy: args.createdBy,
+    })
+
+    // Add the creator as an attendee
+    await ctx.db.insert("sessionAttendees", {
+      sessionId,
+      userId: args.createdBy,
+    })
+
+    return sessionId
   },
 })
 

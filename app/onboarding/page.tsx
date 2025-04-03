@@ -115,21 +115,21 @@ export default function OnboardingPage() {
     if (!isLoaded || !user) return
 
     const promise = new Promise(async (resolve, reject) => {
-      try {
+    try {
         const clerkId = user.id
         if (!clerkId) {
           throw new Error("No Clerk user ID found")
         }
 
         const userId = await createUser({
-          name: user.fullName || "",
-          email: user.primaryEmailAddress?.emailAddress || "",
+        name: user.fullName || "",
+        email: user.primaryEmailAddress?.emailAddress || "",
           clerkId: clerkId,
-          university: formData.university,
-          major: formData.major,
-          imageUrl: user.imageUrl,
-          courses: formData.courses,
-        })
+        university: formData.university,
+        major: formData.major,
+        imageUrl: user.imageUrl,
+        courses: formData.courses,
+      })
 
         localStorage.setItem("convexUserId", userId)
         resolve(userId)
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
     toast.promise(promise, {
       loading: 'Creating your profile...',
       success: () => {
-        router.push("/dashboard")
+      router.push("/dashboard")
         return 'Profile created successfully! Redirecting to dashboard...'
       },
       error: 'There was a problem setting up your profile. Please try again.',
@@ -153,7 +153,7 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-white/60">Loading your profile...</p>
         </div>
       </div>
@@ -225,63 +225,63 @@ export default function OnboardingPage() {
                 >
                   {currentStep === 0 && (
                     <div className="space-y-4">
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
                           <Label className="text-white/60">University</Label>
-                          <Input
-                            placeholder="Enter your university"
-                            value={formData.university}
-                            onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-                            required
+                    <Input
+                      placeholder="Enter your university"
+                      value={formData.university}
+                      onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                      required
                             className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
-                          />
-                        </div>
-                        <div className="space-y-2">
+                    />
+                  </div>
+                  <div className="space-y-2">
                           <Label className="text-white/60">Major</Label>
-                          <Input
-                            placeholder="Enter your major"
-                            value={formData.major}
-                            onChange={(e) => setFormData({ ...formData, major: e.target.value })}
-                            required
+                    <Input
+                      placeholder="Enter your major"
+                      value={formData.major}
+                      onChange={(e) => setFormData({ ...formData, major: e.target.value })}
+                      required
                             className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
                         <Label className="text-white/60">Year</Label>
-                        <Select
-                          value={formData.year}
-                          onValueChange={(value) => setFormData({ ...formData, year: value })}
-                          required
-                        >
+                  <Select
+                    value={formData.year}
+                    onValueChange={(value) => setFormData({ ...formData, year: value })}
+                    required
+                  >
                           <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                            <SelectValue placeholder="Select your year" />
-                          </SelectTrigger>
+                      <SelectValue placeholder="Select your year" />
+                    </SelectTrigger>
                           <SelectContent className="bg-black/90 border-white/10">
-                            <SelectItem value="freshman">Freshman</SelectItem>
-                            <SelectItem value="sophomore">Sophomore</SelectItem>
-                            <SelectItem value="junior">Junior</SelectItem>
-                            <SelectItem value="senior">Senior</SelectItem>
-                            <SelectItem value="graduate">Graduate</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      <SelectItem value="freshman">Freshman</SelectItem>
+                      <SelectItem value="sophomore">Sophomore</SelectItem>
+                      <SelectItem value="junior">Junior</SelectItem>
+                      <SelectItem value="senior">Senior</SelectItem>
+                      <SelectItem value="graduate">Graduate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                     </div>
                   )}
 
                   {currentStep === 1 && (
-                    <div className="space-y-4">
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Add a course (e.g., CS 101)"
-                          value={formData.courseInput}
-                          onChange={(e) => setFormData({ ...formData, courseInput: e.target.value })}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault()
-                              handleAddCourse()
-                            }
-                          }}
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a course (e.g., CS 101)"
+                      value={formData.courseInput}
+                      onChange={(e) => setFormData({ ...formData, courseInput: e.target.value })}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          handleAddCourse()
+                        }
+                      }}
                           className="bg-white/5 border-white/10 text-white placeholder:text-white/40"
                         />
                         <Button 
@@ -290,17 +290,17 @@ export default function OnboardingPage() {
                           className="shrink-0 bg-primary hover:bg-primary/90"
                         >
                           <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    </Button>
+                  </div>
 
-                      {formData.courses.length > 0 ? (
-                        <div className="space-y-2">
-                          {formData.courses.map((course) => (
+                  {formData.courses.length > 0 ? (
+                    <div className="space-y-2">
+                      {formData.courses.map((course) => (
                             <div
                               key={course}
                               className="flex items-center justify-between rounded-md border border-white/10 bg-white/5 px-3 py-2"
                             >
-                              <span>{course}</span>
+                          <span>{course}</span>
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -309,11 +309,11 @@ export default function OnboardingPage() {
                                 className="hover:bg-white/10 text-white/60 hover:text-white"
                               >
                                 <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
+                          </Button>
                         </div>
-                      ) : (
+                      ))}
+                    </div>
+                  ) : (
                         <p className="text-sm text-white/60 text-center">
                           No courses added yet. Add your current courses to find study groups.
                         </p>
@@ -434,7 +434,7 @@ export default function OnboardingPage() {
                         >
                           Receive study session reminders
                         </label>
-                      </div>
+                </div>
 
                       <div className="flex items-center space-x-3">
                         <Checkbox
@@ -448,7 +448,7 @@ export default function OnboardingPage() {
                           }
                           className="border-white/20 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
-                        <label
+                  <label
                           htmlFor="messages"
                           className="text-sm font-medium text-white"
                         >
@@ -476,15 +476,15 @@ export default function OnboardingPage() {
                     disabled={isSubmitting}
                     className="bg-primary hover:bg-primary/90"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Setting up your profile...
-                      </>
-                    ) : (
-                      "Complete Setup"
-                    )}
-                  </Button>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Setting up your profile...
+                    </>
+                  ) : (
+                    "Complete Setup"
+                  )}
+                </Button>
                 ) : (
                   <Button 
                     type="button" 

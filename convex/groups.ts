@@ -117,19 +117,21 @@ export const create = mutation({
     name: v.string(),
     course: v.string(),
     description: v.string(),
-    createdBy: v.string(),
+    createdBy: v.id("users"),
     isPublic: v.boolean(),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity()
     if (!identity) throw new Error("Unauthorized")
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", args.createdBy))
-      .first()
-
+    // Verify the user exists
+    const user = await ctx.db.get(args.createdBy)
     if (!user) throw new Error("User not found")
+
+    // Verify the user's Clerk ID matches the authenticated user
+    if (user.clerkId !== identity.subject) {
+      throw new Error("Unauthorized")
+    }
 
     const groupId = await ctx.db.insert("groups", {
       name: args.name,

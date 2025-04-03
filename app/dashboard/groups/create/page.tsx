@@ -60,8 +60,7 @@ export default function CreateGroupPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const convexUserId = localStorage.getItem("convexUserId")
-    if (!convexUserId) {
+    if (!profile?._id) {
       toast.error("Please complete your profile setup first")
       router.push("/onboarding")
       return
@@ -71,7 +70,7 @@ export default function CreateGroupPage() {
       name: formData.name,
       course: formData.course,
       description: formData.description,
-      createdBy: convexUserId,
+      createdBy: profile._id,
       isPublic: true
     })
 
