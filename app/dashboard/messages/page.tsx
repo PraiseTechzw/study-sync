@@ -10,13 +10,8 @@ import Link from "next/link"
 
 export default function MessagesPage() {
   const { user, isLoaded } = useUser()
-  const profile = useQuery(api.users.getByClerkId, { 
-    clerkId: user?.id || "" 
-  })
-  // Only run the groups query if we have a valid profile ID
-  const groups = profile?._id ? useQuery(api.groups.getForUser, { 
-    userId: profile._id 
-  }) : null
+  const profile = useQuery(api.users.getByClerkId, { clerkId: user?.id || "" })
+  const groups = useQuery(api.groups.getForUser, profile?._id ? { userId: profile._id } : "skip")
 
   const isLoading = !isLoaded || (user?.id && !profile)
 
