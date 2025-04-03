@@ -208,3 +208,13 @@ export const leave = mutation({
   },
 })
 
+export const getByUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("groups")
+      .filter((q) => q.eq(q.field("members"), args.userId))
+      .collect()
+  },
+})
+

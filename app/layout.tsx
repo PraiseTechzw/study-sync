@@ -1,19 +1,16 @@
+"use client"
+
 import type { Metadata } from "next"
 import "@/app/globals.css"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
-import { ConvexClientProvider } from "@/components/convex-client-provider"
+import { ConvexProvider, ConvexReactClient } from "convex/react"
 import { ClerkProvider } from "@clerk/nextjs"
 import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
-export const metadata: Metadata = {
-  title: "StudySync - Collaborative Learning Platform",
-  description:
-    "Connect with classmates, schedule study sessions, and improve your academic performance with StudySync.",
-    generator: 'v0.dev'
-}
 
 export default function RootLayout({
   children,
@@ -21,10 +18,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-  
+    <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={inter.className}>
-          <ConvexClientProvider>
+          <ConvexProvider client={convex}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               {children}
               <Toaster 
@@ -39,9 +36,10 @@ export default function RootLayout({
                 }}
               />
             </ThemeProvider>
-          </ConvexClientProvider>
+          </ConvexProvider>
         </body>
       </html>
+    </ClerkProvider>
   )
 }
 
