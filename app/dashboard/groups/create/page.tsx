@@ -62,12 +62,10 @@ export default function CreateGroupPage() {
 
     const promise = createGroup({
       name: formData.name,
-      description: formData.description,
       course: formData.course,
-      maxMembers: parseInt(formData.maxMembers),
-      meetingTime: formData.meetingTime,
-      meetingLocation: formData.meetingLocation,
-      creatorId: profile._id,
+      description: formData.description,
+      createdBy: profile._id,
+      isPublic: true
     })
 
     toast.promise(promise, {
@@ -83,16 +81,6 @@ export default function CreateGroupPage() {
   return (
     <DashboardShell>
       <div className="max-w-2xl mx-auto space-y-8">
-        <div>
-          <Link
-            href="/dashboard/groups"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Groups
-          </Link>
-        </div>
-
         <Card>
           <CardHeader>
             <CardTitle>Create a Study Group</CardTitle>
