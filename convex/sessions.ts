@@ -100,12 +100,12 @@ export const getRecent = query({
 export const getUpcomingByUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    const now = new Date()
+    const today = new Date().toISOString().split('T')[0]
     
     return await ctx.db
       .query("sessions")
-      .filter((q) => q.eq(q.field("createdBy"), args.userId))
-      .filter((q) => q.gt(q.field("date"), now.toISOString().split('T')[0]))
+      .withIndex("by_user", (q) => q.eq("createdBy", args.userId))
+      .filter((q) => q.gte(q.field("date"), today))
       .order("asc")
       .take(5)
   },

@@ -211,10 +211,18 @@ export const leave = mutation({
 export const getByUser = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("groups")
-      .filter((q) => q.eq(q.field("members"), args.userId))
+    const memberships = await ctx.db
+      .query("groupMembers")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .collect()
+
+    const groupIds = memberships.map(m => m.groupId)
+    const groups = []
+    for (const groupId of groupIds) {
+      const group = await ctx.db.get(groupId)
+      if (group) groups.push(group)
+    }
+    return groups
   },
 })
 

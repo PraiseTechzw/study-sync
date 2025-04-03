@@ -32,18 +32,17 @@ export default defineSchema({
     .index("by_user", ["userId"]),
 
   sessions: defineTable({
-    groupId: v.id("groups"),
+    title: v.string(),
+    description: v.optional(v.string()),
     date: v.string(),
     startTime: v.string(),
     endTime: v.string(),
-    location: v.string(),
-    topic: v.string(),
-    description: v.optional(v.string()),
+    groupId: v.id("groups"),
     createdBy: v.id("users"),
   })
-    .index("by_group", ["groupId"])
     .index("by_date", ["date"])
-    .index("by_creator", ["createdBy"]),
+    .index("by_group", ["groupId"])
+    .index("by_user", ["createdBy"]),
 
   sessionAttendees: defineTable({
     sessionId: v.id("sessions"),
