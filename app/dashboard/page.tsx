@@ -5,10 +5,10 @@ import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Loader2 } from "lucide-react"
 import DashboardShell from "@/components/dashboard/shell"
-import { UpcomingSessions } from "@/components/dashboard/upcoming-sessions"
 import { RecommendedGroups } from "@/components/dashboard/recommended-groups"
 import { YourGroups } from "@/components/dashboard/your-groups"
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner"
+import UpcomingSessions from "@/components/dashboard/upcoming-sessions"
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser()
