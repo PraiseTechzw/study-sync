@@ -64,7 +64,7 @@ export default function CreateGroupPage() {
       name: formData.name,
       course: formData.course,
       description: formData.description,
-      createdBy: profile._id,
+      createdBy: user?.id || "",
       isPublic: true
     })
 
