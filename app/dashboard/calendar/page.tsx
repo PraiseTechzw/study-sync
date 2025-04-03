@@ -5,32 +5,22 @@ import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import DashboardShell from "@/components/dashboard/shell"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Loader2, Plus, Users } from "lucide-react"
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, parseISO } from "date-fns"
+import { Calendar } from "@/components/ui/calendar"
+import { format, startOfMonth, endOfMonth, isSameDay } from "date-fns"
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
 
 export default function CalendarPage() {
   const { user, isLoaded } = useUser()
   const profile = useQuery(api.users.getByClerkId, { clerkId: user?.id || "" })
-  const sessions = profile ? useQuery(api.sessions.getForUser, { userId: profile._id }) : null
+  const sessions = useQuery(api.sessions.getForUser, { 
+    userId: profile?._id || "skip"
+  })
 
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [view, setView] = useState<"month" | "week">("month")
-
-  const monthStart = startOfMonth(currentMonth)
-  const monthEnd = endOfMonth(currentMonth)
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
-
-  const previousMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
-  }
-
-  const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
-  }
 
   if (!isLoaded) {
     return (
@@ -48,141 +38,121 @@ export default function CalendarPage() {
         <div className="flex flex-col items-center justify-center min-h-screen">
           <h1 className="text-2xl font-bold">Profile not found</h1>
           <p className="text-muted-foreground">Please complete your onboarding.</p>
-          <Link href="/onboarding" className="text-primary hover:underline mt-4">
-            Complete Onboarding
-          </Link>
         </div>
       </DashboardShell>
     )
+  }
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))
+  }
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))
+  }
+
+  const getSessionsForDay = (date: Date) => {
+    if (!sessions) return []
+    return sessions.filter(session => isSameDay(new Date(session.date), date))
   }
 
   return (
     <DashboardShell>
       <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Study Calendar</h1>
-            <p className="text-muted-foreground">Schedule and manage your study sessions</p>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
+            <p className="text-muted-foreground">
+              View and manage your study sessions
+            </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant={view === "month" ? "default" : "outline"}
-                onClick={() => setView("month")}
-              >
-                Month
-              </Button>
-              <Button
-                variant={view === "week" ? "default" : "outline"}
-                onClick={() => setView("week")}
-              >
-                Week
-              </Button>
-            </div>
-            <Link href="/dashboard/calendar/create">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                New Session
-              </Button>
-            </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handlePrevMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleNextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                {format(currentMonth, "MMMM yyyy")}
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={previousMonth}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={nextMonth}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            <CardTitle>{format(currentMonth, "MMMM yyyy")}</CardTitle>
+            <CardDescription>
+              {sessions?.length || 0} sessions this month
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-7 gap-1">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="text-center font-medium text-sm text-muted-foreground py-2">
-                  {day}
-                </div>
-              ))}
-              {days.map((day) => {
-                const daySessions = sessions?.filter((session) => {
-                  const sessionDate = parseISO(session.date)
-                  return (
-                    sessionDate.getDate() === day.getDate() &&
-                    sessionDate.getMonth() === day.getMonth() &&
-                    sessionDate.getFullYear() === day.getFullYear()
-                  )
-                })
-
+            <Calendar
+              mode="single"
+              selected={currentMonth}
+              onSelect={(date) => date && setCurrentMonth(date)}
+              className="rounded-md border"
+              month={currentMonth}
+              onMonthChange={setCurrentMonth}
+              renderDay={(date) => {
+                const daySessions = getSessionsForDay(date)
                 return (
-                  <motion.div
-                    key={day.toString()}
-                    className={`
-                      min-h-[100px] p-2 border rounded-lg
-                      ${isSameMonth(day, currentMonth) ? "bg-background" : "bg-muted/50"}
-                      ${isToday(day) ? "border-primary" : "border-border"}
-                    `}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex justify-between items-start">
-                      <span className={`
-                        text-sm font-medium
-                        ${isToday(day) ? "text-primary" : "text-foreground"}
-                      `}>
-                        {format(day, "d")}
-                      </span>
-                      {daySessions && daySessions.length > 0 && (
-                        <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                          {daySessions.length}
-                        </span>
+                  <div className="relative">
+                    <div className="absolute -top-1 -right-1">
+                      {daySessions.length > 0 && (
+                        <div className="h-2 w-2 rounded-full bg-primary" />
                       )}
                     </div>
-                    <AnimatePresence>
-                      {daySessions && daySessions.length > 0 && (
-                        <motion.div
-                          className="mt-2 space-y-1"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                        >
-                          {daySessions.map((session) => (
-                            <motion.div
-                              key={session._id}
-                              className="p-2 bg-primary/5 rounded-md text-xs space-y-1"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.9 }}
-                            >
-                              <div className="font-medium truncate">{session.title}</div>
-                              <div className="flex items-center gap-1 text-muted-foreground">
-                                <Clock className="h-3 w-3" />
-                                <span>{session.startTime} - {session.endTime}</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-muted-foreground">
-                                <Users className="h-3 w-3" />
-                                <span>{session.attendees?.length || 0} attending</span>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {format(date, "d")}
+                  </div>
                 )
-              })}
-            </div>
+              }}
+            />
           </CardContent>
         </Card>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={format(currentMonth, "yyyy-MM")}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Sessions</CardTitle>
+                <CardDescription>
+                  Sessions for {format(currentMonth, "MMMM yyyy")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {sessions?.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No sessions scheduled for this month
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sessions?.map((session) => (
+                      <div
+                        key={session._id}
+                        className="flex items-center justify-between rounded-lg border p-4"
+                      >
+                        <div className="space-y-1">
+                          <h3 className="font-medium">{session.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(session.date), "PPP")} at{" "}
+                            {session.startTime} - {session.endTime}
+                          </p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </DashboardShell>
   )
