@@ -3,43 +3,43 @@
 import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { Loader2 } from "lucide-react"
 import DashboardShell from "@/components/dashboard/shell"
-import { RecommendedGroups } from "@/components/dashboard/recommended-groups"
-import { YourGroups } from "@/components/dashboard/your-groups"
-import { WelcomeBanner } from "@/components/dashboard/welcome-banner"
+import WelcomeBanner from "@/components/dashboard/welcome-banner"
 import UpcomingSessions from "@/components/dashboard/upcoming-sessions"
+import YourGroups from "@/components/dashboard/your-groups"
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser()
-  const convexUser = useQuery(api.users.getByClerkId, { 
-    clerkId: user?.id || "" 
-  })
+  const profile = useQuery(api.users.getProfile, user?.id ? { userId: user.id } : "skip")
 
-  if (!isLoaded || !convexUser) {
+  if (!isLoaded) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+      <DashboardShell>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
         </div>
-      </div>
+      </DashboardShell>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <DashboardShell>
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-2xl font-bold">Profile not found</h1>
+          <p className="text-muted-foreground">Please complete your onboarding.</p>
+        </div>
+      </DashboardShell>
     )
   }
 
   return (
     <DashboardShell>
-      <div className="flex flex-col gap-8">
-        <WelcomeBanner user={convexUser} />
-        
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-6">
-            <UpcomingSessions userId={convexUser._id} />
-            <YourGroups userId={convexUser._id} />
-          </div>
-          <div>
-            <RecommendedGroups userId={convexUser._id} />
-          </div>
+      <div className="space-y-8">
+        <WelcomeBanner />
+        <div className="grid gap-4 md:grid-cols-2">
+          <UpcomingSessions userId={profile._id} />
+          <YourGroups userId={profile._id} />
         </div>
       </div>
     </DashboardShell>
