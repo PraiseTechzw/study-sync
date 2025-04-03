@@ -10,7 +10,7 @@ import YourGroups from "@/components/dashboard/your-groups"
 
 export default function DashboardPage() {
   const { user, isLoaded } = useUser()
-  const profile = useQuery(api.users.getProfile, user?.id ? { userId: user.id } : "skip")
+  const profile = useQuery(api.users.getByClerkId, { clerkId: user?.id || "" })
 
   if (!isLoaded) {
     return (
